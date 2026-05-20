@@ -1,0 +1,13 @@
+# AFM Preprocessing Pipeline — dependencias
+# ─────────────────────────────────────────
+# Instalar con:
+#   pip install -r requirements.txt
+#
+# Paquetes de la biblioteca estándar usados (no requieren instalación):
+#   argparse, logging, re, sys, pathlib, collections, numpy.fft
+#
+# Dependencias de terceros:
+numpy>=1.24
+scipy>=1.10
+opencv-python>=4.8
+matplotlib>=3.7

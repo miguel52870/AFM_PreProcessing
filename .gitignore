@@ -1,0 +1,6 @@
+# Entornos virtuales y caché de Python
+env/
+__pycache__/
+
+# Carpeta de resultados
+Results/
