@@ -1,6 +1,8 @@
 """
 AFM Preprocessing Pipeline — BiFeO3 Ferroelectric Domains
 ==========================================================
+Tesis: "Estudio de la Evolución de los Dominios Ferroeléctricos al Switching
+        Usando Deep Learning para Aplicación de Memorias de Estado Sólido"
 
 Compatibilidad con flujos existentes:
   - AFM_ToolKit    : https://github.com/miguel52870/AFM_ToolKit
@@ -67,14 +69,14 @@ from scipy.ndimage import gaussian_filter, median_filter
 CONFIG = {
     # ── Rutas ────────────────────────────────────────────────────────────────
     # Carpeta con los archivos .npy originales (requerido)
-    "npy_dir":    "imagenes_AFM/canales_separados_gwy/canales_separados_npy",
+    "npy_dir":    "C:/Users/migue/Desktop/imagenes_AFM/canales_separados_gwy/canales_separados_npy",
     # Carpeta con los .png originales del microscopio (opcional).
     # Si no tienes PNGs o no los quieres usar, pon None:
     #   "png_dir": None
-    "png_dir":    "imagenes_AFM/canales_separados_gwy/canales_separados_png",
+    "png_dir":    "C:/Users/migue/Desktop/imagenes_AFM/canales_separados_gwy/canales_separados_png",
     # Carpeta donde se crearán png_procesado/ y npy_procesado/
-    "output_dir": "AFM_Preprocessing/Results",
-    # ── Identificación de la serie ───────────────────────────────────────────
+    "output_dir": "C:/Users/migue/Desktop/AFM_Preprocessing/Results",
+    # ── Identificación de la serie ───────────────────────────────────────────z
     # Palabra entre "bifeo_" y el número en el nombre del archivo.
     # Ejemplo: "bifeo_training_21_Canal_1.npy"  →  prefix = "training"
     "prefix":   "training",

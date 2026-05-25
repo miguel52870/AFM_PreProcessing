@@ -43,7 +43,7 @@ def _norm(data: np.ndarray) -> np.ndarray:
 
 
 def _imshow(ax, data, cmap, title, colorbar=False):
-    im = ax.imshow(_norm(data), cmap=cmap, vmin=0, vmax=1, aspect="auto")
+    im = ax.imshow(_norm(data), cmap=cmap, vmin=0, vmax=1, aspect="equal")
     ax.set_title(title, fontsize=8, pad=3)
     ax.axis("off")
     if colorbar:
@@ -77,38 +77,62 @@ def _save(fig, path, dpi=150):
 def diag_stage_comparison(stage_snapshots, canal, output_dir,
                           frame_label, has_original_png):
     """
-    Una columna por etapa: imagen arriba, histograma abajo.
-    Si hay PNG original del microscopio, la primera columna lo muestra
-    con un borde coloreado para distinguirla claramente.
+    Layout 4+3:
+      Fila 0: imágenes  etapas 0-3   (4 columnas)
+      Fila 1: histos    etapas 0-3
+      Fila 2: imágenes  etapas 4-6   (3 columnas + 1 vacía)
+      Fila 3: histos    etapas 4-6   (3 columnas + 1 vacía)
+
+    Si hay PNG original lo muestra con borde naranja en la primera celda.
     """
+    if not stage_snapshots:
+        print("  [diag_etapas] stage_snapshots vacío, se omite.")
+        return
+
     cmap   = CMAPS.get(canal, "gray")
     labels = list(stage_snapshots.keys())
     arrays = list(stage_snapshots.values())
-    n      = len(labels)
+    n      = len(labels)   # normalmente 7 (con PNG) o 6 (sin PNG)
 
-    fig, axes = plt.subplots(2, n, figsize=(3.8 * n, 7))
-    if n == 1:
-        axes = axes.reshape(2, 1)
+    COLS = 4               # columnas por bloque
+    n1   = min(COLS, n)    # etapas en el primer bloque
+    n2   = n - n1          # etapas en el segundo bloque
 
     colors = plt.cm.tab10(np.linspace(0, 0.8, n))
 
-    for col, (label, data) in enumerate(zip(labels, arrays)):
-        # Imagen
-        _imshow(axes[0, col], data, cmap, label)
+    # 4 filas x 4 columnas; las celdas sobrantes del bloque 2 quedan ocultas
+    fig, axes = plt.subplots(4, COLS, figsize=(4.2 * COLS, 9))
 
-        # Si es la columna del PNG original, marco el borde para destacarla
-        if col == 0 and has_original_png:
-            for spine in axes[0, col].spines.values():
+    def _draw_col(row_img, row_hist, col_ax, idx, label, data, color):
+        """Dibuja imagen + histograma en la posición indicada."""
+        ax_img  = axes[row_img,  col_ax]
+        ax_hist = axes[row_hist, col_ax]
+        _imshow(ax_img, data, cmap, label)
+        # Borde naranja para el PNG original
+        if idx == 0 and has_original_png:
+            for spine in ax_img.spines.values():
                 spine.set_edgecolor("#e07b00")
                 spine.set_linewidth(2.5)
                 spine.set_visible(True)
-            axes[0, col].set_title(label, fontsize=8, pad=3, color="#e07b00", fontweight="bold")
-
-        # Histograma
-        _hist(axes[1, col], data, color=colors[col],
+            ax_img.set_title(label, fontsize=8, pad=3,
+                             color="#e07b00", fontweight="bold")
+        _hist(ax_hist, data, color=color,
               title=f"Histograma\n{label.split(chr(10))[0]}")
 
-    # Leyenda del borde naranja
+    # Bloque 1: filas 0-1, columnas 0 a n1-1
+    for i in range(n1):
+        _draw_col(0, 1, i, i, labels[i], arrays[i], colors[i])
+
+    # Bloque 2: filas 2-3, columnas 0 a n2-1
+    for j in range(n2):
+        _draw_col(2, 3, j, n1 + j, labels[n1 + j], arrays[n1 + j], colors[n1 + j])
+
+    # Ocultar celdas sobrantes del bloque 2
+    for j in range(n2, COLS):
+        axes[2, j].set_visible(False)
+        axes[3, j].set_visible(False)
+
+    # Leyenda borde naranja
     if has_original_png:
         fig.text(0.01, 0.99,
                  "Columna naranja = imagen original del microscopio",
@@ -119,7 +143,13 @@ def diag_stage_comparison(stage_snapshots, canal, output_dir,
         fontsize=10, fontweight="bold", y=1.005,
     )
     fig.tight_layout()
-    _save(fig, output_dir / f"diag_etapas_C{canal}_{frame_label}.png")
+    try:
+        _save(fig, output_dir / f"diag_etapas_C{canal}_{frame_label}.png")
+        print(f"  [diag_etapas] guardado: diag_etapas_C{canal}_{frame_label}.png")
+    except Exception as e:
+        print(f"  [diag_etapas] ERROR al guardar: {e}")
+    finally:
+        plt.close(fig)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -137,7 +167,7 @@ def diag_plane_correction(raw_npy, original_png, corrected, background,
     has_orig = original_png is not None
     ncols = 5 if has_orig else 4
 
-    fig = plt.figure(figsize=(3.5 * ncols, 5))
+    fig = plt.figure(figsize=(3.5 * ncols, 2.5))
     gs  = gridspec.GridSpec(1, ncols, figure=fig, wspace=0.3)
     axes = [fig.add_subplot(gs[i]) for i in range(ncols)]
 
