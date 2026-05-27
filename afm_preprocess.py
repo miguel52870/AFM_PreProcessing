@@ -486,7 +486,7 @@ def run_pipeline(args):
                 continue
             mask = otsu_domain_mask(frame)
             np.save(npy_mask / f"{stem}_mask.npy", mask)
-            _render_png(mask.astype(np.float64), png_mask / f"{stem}_mask.png", "binary")
+            _render_png(mask.astype(np.float64), png_mask / f"{stem}_mask.png", "gray")
 
     post_filter_c2 = []
     post_clahe_c2  = []   # reservado para diagnostico, CLAHE desactivado
